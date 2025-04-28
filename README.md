@@ -1,11 +1,18 @@
-# Morse Code Receiver
+# Morse Code Receiver 📡
 
-This project is a Morse Code Receiver using NodeMCU ESP8266, LDR sensor, and LCD I2C.
+A simple Morse Code Receiver using NodeMCU ESP8266, LDR sensor, and LCD I2C display.
 
-It detects light signals in Morse code format and displays the decoded message on the LCD.
+- Detects light signals and decodes Morse code messages.
+- Displays decoded messages on LCD with automatic line switching.
+- Supports 300 ms unit timing with ±10% tolerance.
 
-- **Hardware:** NodeMCU ESP8266, LDR, LCD 16x2 (I2C)
-- **Timing:** 1 unit = 300 ms
-- **Features:** Tolerates ±10% timing error, automatic line switching on LCD
+## Hardware
+- NodeMCU ESP8266
+- LDR Sensor
+- LCD 16x2 (I2C)
+- 1KΩ, 220Ω resistors, 10KΩ potentiometer
+
+## Test
+Tested with [Morse Blinker Web App](https://indigo.re/morse/blink.html) (Dit length = 300 ms).
 
 ---
