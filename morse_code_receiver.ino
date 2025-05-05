@@ -4,16 +4,17 @@
 #define LDR_PIN A0
 #define UNIT_TIME 300
 #define LIGHT_THRESHOLD 900
+#define TOLERANCE 0.10
+#define BUTTON_PIN D7  
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-
-#define TOLERANCE 0.10
 
 unsigned long signalStart = 0;
 unsigned long signalEnd = 0;
 unsigned long lastSignalTime = 0;
+
 bool isLightOn = false;
-bool firstSignalReceived = false; // Yeni eklenen bayrak
+bool firstSignalReceived = false;
 String morseChar = "";
 String decodedMessage = "";
 
@@ -30,9 +31,10 @@ MorseMap morseTable[] = {
   {"..-.", 'F'}, {"--.", 'G'},  {"....", 'H'}, {"..", 'I'},  {".---", 'J'},
   {"-.-", 'K'},  {".-..", 'L'}, {"--", 'M'},   {"-.", 'N'},  {"---", 'O'},
   {".--.", 'P'}, {"--.-", 'Q'}, {".-.", 'R'},  {"...", 'S'}, {"-", 'T'},
-  {"..-", 'U'},  {"...-", 'V'}, {".--", 'W'},  {"-..-", 'X'}, {"-.--", 'Y'}, {"--..", 'Z'},
-  {"-----", '0'}, {".----", '1'}, {"..---", '2'}, {"...--", '3'}, {"....-", '4'},
-  {".....", '5'}, {"-....", '6'}, {"--...", '7'}, {"---..", '8'}, {"----.", '9'}
+  {"..-", 'U'},  {"...-", 'V'}, {".--", 'W'},  {"-..-", 'X'}, {"-.--", 'Y'},
+  {"--..", 'Z'}, {"-----", '0'}, {".----", '1'}, {"..---", '2'},
+  {"...--", '3'}, {"....-", '4'}, {".....", '5'}, {"-....", '6'},
+  {"--...", '7'}, {"---..", '8'}, {"----.", '9'}
 };
 
 bool isDurationClose(unsigned long duration, unsigned long target) {
@@ -46,15 +48,30 @@ void setup() {
   lcd.init();
   lcd.backlight();
   pinMode(LDR_PIN, INPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);  
   lcd.setCursor(0, 0);
   lcd.print("Morse Receiver");
 }
 
 void loop() {
+  
+  static bool buttonPrevState = HIGH;
+  bool buttonCurrentState = digitalRead(BUTTON_PIN);
+
+  if (buttonPrevState == HIGH && buttonCurrentState == LOW) {
+    int lightVal = analogRead(LDR_PIN);
+    Serial.print("Calibrate Mode - LDR Value: ");
+    Serial.println(lightVal);
+    delay(300);  
+    
+  }
+  buttonPrevState = buttonCurrentState;
+
   int ldrValue = analogRead(LDR_PIN);
   unsigned long currentTime = millis();
 
-  if (ldrValue < LIGHT_THRESHOLD) { // Light detected
+  // Işık algılandı
+  if (ldrValue < LIGHT_THRESHOLD) {
     if (!isLightOn) {
       isLightOn = true;
       signalStart = currentTime;
@@ -74,7 +91,9 @@ void loop() {
         lcdPrint(' ');
       }
     }
-  } else { // No light
+  } 
+  
+  else {
     if (isLightOn) {
       isLightOn = false;
       signalEnd = currentTime;
@@ -85,12 +104,13 @@ void loop() {
       } else if (isDurationClose(duration, UNIT_TIME * 3)) {
         morseChar += "-";
       }
+
       lastSignalTime = currentTime;
     }
   }
 
   if (!isLightOn && morseChar.length() > 0) {
-    if (millis() - lastSignalTime > UNIT_TIME * 3) { 
+    if (millis() - lastSignalTime > UNIT_TIME * 3) {
       decodeMorse(morseChar);
       morseChar = "";
     }
@@ -121,7 +141,6 @@ void lcdPrint(char ch) {
       LCD_cursor_row = 0;
       LCD_cursor_col = 0;
     } else {
-      // Yeni satıra geçmeden önce satırı temizle
       lcd.setCursor(0, LCD_cursor_row);
       for (int i = 0; i < 16; i++) {
         lcd.print(" ");
