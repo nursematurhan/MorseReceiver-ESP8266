@@ -10,7 +10,6 @@ A simple Morse Code Receiver using NodeMCU ESP8266, LDR sensor, and LCD I2C disp
 - NodeMCU ESP8266
 - LDR Sensor
 - LCD 16x2 (I2C)
-- 1KΩ, 220Ω resistors, 10KΩ potentiometer
 
 ## Test
 Tested with [Morse Blinker Web App](https://indigo.re/morse/blink.html) (Dit length = 300 ms).
